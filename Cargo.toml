@@ -10,6 +10,7 @@ dotenv = "0.15.0"
 reqwest = "0.12.5"
 secrecy = { version = "0.8.0", features = ["serde"] }
 serde = { version = "1.0.203", features = ["derive"] }
+serde-aux = "4.5.0"
 sqlx = { version = "0.7.4", features = ["chrono", "postgres", "runtime-tokio", "time", "uuid"] }
 tokio = { version = "1.38.0", features = ["rt", "rt-multi-thread", "macros"] }
 tracing = "0.1.40"
