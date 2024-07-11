@@ -40,8 +40,26 @@ mod tests {
     }
 
     #[test]
-    fn valid_email_is_accept(){
+    fn valid_email_is_accept() {
         let email = "donkeykane@gmail.com".to_string();
-        assert_ok!(SubscriberEmail::parse(email)); 
+        assert_ok!(SubscriberEmail::parse(email));
+    }
+
+    use fake::faker::internet::en::SafeEmail;
+    use fake::Fake;
+
+    #[derive(Debug, Clone)]
+    pub struct ValidEmailFixture(pub String);
+
+    impl quickcheck::Arbitrary for ValidEmailFixture {
+        fn arbitrary<G: quickcheck::Gen>(g: &mut G) -> Self {
+            let email = SafeEmail().fake_with_rng(g);
+            Self(email)
+        }
+    }
+
+    #[quickcheck_macros::quickcheck]
+    fn valid_emails_are_parsed_successfully(valid_email: ValidEmailFixture) -> bool {
+        SubscriberEmail::parse(valid_email.0).is_ok()
     }
 }
