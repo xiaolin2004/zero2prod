@@ -1,10 +1,8 @@
 extern crate dotenv;
-use std::net::TcpListener;
-
 use dotenv::dotenv;
 use once_cell::sync::Lazy;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
-
+use std::net::TcpListener;
 use zero2prod::configuration::{get_configuration, DatabaseSettings};
 use zero2prod::email_client::EmailClient;
 use zero2prod::telemetry::{get_subscriber, init_subscriber};
@@ -52,9 +50,16 @@ async fn spawn_app() -> TestApp {
         .email_client
         .sender()
         .expect("Invalid sender email address.");
-    let email_client = EmailClient::new(configuration.email_client.base_url, sender_email,configuration.email_client.authorization_token);
-    
-    let server = zero2prod::run(listener, connection_pool.clone(),email_client).expect("Fail to bind address");
+    let timeout = configuration.email_client.timeout();
+    let email_client = EmailClient::new(
+        configuration.email_client.base_url,
+        sender_email,
+        configuration.email_client.authorization_token,
+        timeout,
+    );
+
+    let server = zero2prod::run(listener, connection_pool.clone(), email_client)
+        .expect("Fail to bind address");
 
     let _ = tokio::spawn(server);
     let address = format!("http://127.0.0.1:{}", port);
