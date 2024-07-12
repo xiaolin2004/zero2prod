@@ -1,16 +1,12 @@
-use actix_web::{
-    HttpResponse,
-    web::{self},
-};
-use actix_web::cookie::time::format_description::parse;
-use actix_web::web::Form;
-use chrono::Utc;
-use sqlx::PgPool;
-use sqlx::types::chrono;
-use unicode_segmentation::UnicodeSegmentation;
-use uuid::Uuid;
-
 use crate::domain::{NewSubscriber, SubscriberEmail, SubscriberName};
+use actix_web::{
+    web::{self},
+    HttpResponse,
+};
+use chrono::Utc;
+use sqlx::types::chrono;
+use sqlx::PgPool;
+use uuid::Uuid;
 
 #[derive(serde::Deserialize)]
 pub struct FormData {
@@ -29,7 +25,7 @@ pub struct FormData {
 pub async fn subscribe(pool: web::Data<PgPool>, form: web::Form<FormData>) -> HttpResponse {
     let new_subscriber = match form.0.try_into() {
         Ok(form) => form,
-        Err(_) => return HttpResponse::BadRequest().finish()
+        Err(_) => return HttpResponse::BadRequest().finish(),
     };
     match insert_subscriber(&pool, &new_subscriber).await {
         Ok(_) => HttpResponse::Ok().finish(),
@@ -43,22 +39,14 @@ impl TryFrom<FormData> for NewSubscriber {
     fn try_from(form: FormData) -> Result<Self, Self::Error> {
         let name = SubscriberName::parse(form.name)?;
         let email = SubscriberEmail::parse(form.email)?;
-        Ok(NewSubscriber {
-            name,
-            email,
-        })
+        Ok(NewSubscriber { name, email })
     }
 }
 
-pub fn parse_subscriber(
-    form: web::Form<FormData>
-) -> Result<NewSubscriber, String> {
+pub fn parse_subscriber(form: web::Form<FormData>) -> Result<NewSubscriber, String> {
     let name = SubscriberName::parse(form.0.name)?;
     let email = SubscriberEmail::parse(form.0.email)?;
-    Ok(NewSubscriber {
-        name,
-        email,
-    })
+    Ok(NewSubscriber { name, email })
 }
 
 #[tracing::instrument(
@@ -79,11 +67,11 @@ pub async fn insert_subscriber(
         new_subscriber.name.as_ref(),
         Utc::now()
     )
-        .execute(pool)
-        .await
-        .map_err(|e| {
-            tracing::error!("Failed to execute query: {:?}", e);
-            e
-        })?;
+    .execute(pool)
+    .await
+    .map_err(|e| {
+        tracing::error!("Failed to execute query: {:?}", e);
+        e
+    })?;
     Ok(())
 }
